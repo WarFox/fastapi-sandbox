@@ -1,0 +1,6 @@
+#+title: FastAPI Sandbox
+
+#+begin_src
+  poetry install
+  poetry run fastapi dev src/app/main.py
+#+end_src
