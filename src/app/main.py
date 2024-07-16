@@ -1,7 +1,41 @@
 from enum import Enum
 from typing import Annotated
 
-from fastapi import FastAPI, Path, Query
+from fastapi import Body, FastAPI, Path, Query
+from pydantic import BaseModel, Field, HttpUrl
+
+
+class Image(BaseModel):
+    url: HttpUrl
+    name: str
+
+
+class Item(BaseModel):
+    name: str
+    description: str | None = Field(
+        default=None, title="The description of the item", max_length=300
+    )
+    price: float = Field(gt=0, description="The price must be greater than zero")
+    tax: float | None = None
+    tags: set[str] = set()
+    images: list[Image] | None = None
+
+
+class Image(BaseModel):
+    url: HttpUrl
+    name: str
+
+
+class Offer(BaseModel):
+    name: str
+    description: str | None = None
+    price: float
+    items: list[Item]
+
+
+class User(BaseModel):
+    username: str
+    full_name: str | None = None
 
 
 class ModelName(str, Enum):
@@ -16,6 +50,11 @@ app = FastAPI()
 @app.get("/")
 async def root():
     return {"message": "Hello World"}
+
+
+@app.post("/offers/")
+async def create_offer(offer: Offer):
+    return offer
 
 
 @app.get("/items/{item_id}/")
@@ -35,6 +74,14 @@ async def read_items(
     results = {"item_id": item_id}
     if q:
         results.update({"q": q})
+    return results
+
+
+@app.put("/items/{item_id}")
+async def update_item(
+    item_id: int, item: Item, user: User, importance: Annotated[int, Body()]
+):
+    results = {"item_id": item_id, "item": item, "user": user, importance: importance}
     return results
 
 
