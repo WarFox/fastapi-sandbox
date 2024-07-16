@@ -1,6 +1,7 @@
 from enum import Enum
+from typing import Annotated
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Path, Query
 
 
 class ModelName(str, Enum):
@@ -17,9 +18,24 @@ async def root():
     return {"message": "Hello World"}
 
 
-@app.get("/items/{item_id}")
-async def read_item(item_id: int):
-    return {"item_id": item_id}
+@app.get("/items/{item_id}/")
+async def read_items(
+    item_id: Annotated[int, Path(title="The ID of the time to get")],
+    q: Annotated[
+        str,
+        None,
+        Query(
+            alias="item-query",
+            title="Query String",
+            description="Query string for the items to search in database",
+            min_length=3,
+        ),
+    ] = None,
+):
+    results = {"item_id": item_id}
+    if q:
+        results.update({"q": q})
+    return results
 
 
 @app.get("/users/me/")
